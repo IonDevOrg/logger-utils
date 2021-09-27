@@ -17,48 +17,60 @@ export class LoggerInstance {
             tracesSampleRate: 1.0,
         });
         //
-        this.logger = winston.createLogger({
-            level: "info",
-            format: winston.format.json(),
-            defaultMeta: { service: "user-service" },
-            transports: [
-                new winston.transports.File({
-                    filename: "info.log",
-                    level: "info",
-                }),
-                new winston.transports.File({ filename: "combined.log" }),
-            ],
-        });
-
-        if (this.environment !== "production") {
-            this.logger.add(
-                new winston.transports.Console({
-                    format: winston.format.simple(),
-                })
-            );
+        try {
+            this.logger = winston.createLogger({
+                level: "info",
+                format: winston.format.json(),
+                defaultMeta: { service: "user-service" },
+                transports: [
+                    new winston.transports.File({
+                        filename: "info.log",
+                        level: "info",
+                    }),
+                    new winston.transports.File({ filename: "combined.log" }),
+                ],
+            });
+    
+            if (this.environment !== "production") {
+                this.logger.add(
+                    new winston.transports.Console({
+                        format: winston.format.simple(),
+                    })
+                );
+            }
+        } catch (error) {
+            this.capture(error)
         }
     }
 
-    public getInstance(sentryDSN: string, environment: string): LoggerInstance {
+    public static getInstance(sentryDSN: string, environment: string): LoggerInstance {
         if (!LoggerInstance.instance) {
             LoggerInstance.instance = new LoggerInstance(sentryDSN, environment);
         }
         return LoggerInstance.instance;
     }
 
-    public log(e: any){
-        this.logger.log('debug', e.toString())
+    public log(error: any){
+        this.logger.log('debug', error.toString())
     }   
 
-    public info(e: any){
-        this.logger.log('info', e.toString())
+    public info(error: any){
+        this.logger.log('info', error.toString())
     }   
 
-    public capture(e: any) {
+    public capture(error: any) {
         if(this.environment !== "production"){
-            this.logger.log('error', e.toString())
+            console.log(error)
         }else{
-            Sentry.captureException(e);
+            Sentry.captureException(error);
+        }
+    }
+
+    public display(error: any) {
+        if(this.environment !== "production"){
+            console.info(error)
+        }else{
+            Sentry.captureMessage(error)
         }
     }
 }
