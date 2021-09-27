@@ -4,8 +4,9 @@ export declare class LoggerInstance {
     private logger;
     private static instance;
     private constructor();
-    getInstance(sentryDSN: string, environment: string): LoggerInstance;
-    log(e: any): void;
-    info(e: any): void;
-    capture(e: any): void;
+    static getInstance(sentryDSN: string, environment: string): LoggerInstance;
+    log(error: any): void;
+    info(error: any): void;
+    capture(error: any): void;
+    display(error: any): void;
 }

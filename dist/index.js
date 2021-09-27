@@ -37,38 +37,56 @@ var LoggerInstance = /** @class */ (function () {
             tracesSampleRate: 1.0,
         });
         //
-        this.logger = winston_1.default.createLogger({
-            level: "info",
-            format: winston_1.default.format.json(),
-            defaultMeta: { service: "user-service" },
-            transports: [
-                new winston_1.default.transports.File({
-                    filename: "info.log",
-                    level: "info",
-                }),
-                new winston_1.default.transports.File({ filename: "combined.log" }),
-            ],
-        });
-        if (this.environment !== "production") {
-            this.logger.add(new winston_1.default.transports.Console({
-                format: winston_1.default.format.simple(),
-            }));
+        try {
+            this.logger = winston_1.default.createLogger({
+                level: "info",
+                format: winston_1.default.format.json(),
+                defaultMeta: { service: "user-service" },
+                transports: [
+                    new winston_1.default.transports.File({
+                        filename: "info.log",
+                        level: "info",
+                    }),
+                    new winston_1.default.transports.File({ filename: "combined.log" }),
+                ],
+            });
+            if (this.environment !== "production") {
+                this.logger.add(new winston_1.default.transports.Console({
+                    format: winston_1.default.format.simple(),
+                }));
+            }
+        }
+        catch (error) {
+            this.capture(error);
         }
     }
-    LoggerInstance.prototype.getInstance = function (sentryDSN, environment) {
+    LoggerInstance.getInstance = function (sentryDSN, environment) {
         if (!LoggerInstance.instance) {
             LoggerInstance.instance = new LoggerInstance(sentryDSN, environment);
         }
         return LoggerInstance.instance;
     };
-    LoggerInstance.prototype.log = function (e) {
-        this.logger.log('debug', e.toString());
+    LoggerInstance.prototype.log = function (error) {
+        this.logger.log('debug', error.toString());
     };
-    LoggerInstance.prototype.info = function (e) {
-        this.logger.log('info', e.toString());
+    LoggerInstance.prototype.info = function (error) {
+        this.logger.log('info', error.toString());
     };
-    LoggerInstance.prototype.capture = function (e) {
-        Sentry.captureException(e);
+    LoggerInstance.prototype.capture = function (error) {
+        if (this.environment !== "production") {
+            console.log(error);
+        }
+        else {
+            Sentry.captureException(error);
+        }
+    };
+    LoggerInstance.prototype.display = function (error) {
+        if (this.environment !== "production") {
+            console.info(error);
+        }
+        else {
+            Sentry.captureMessage(error);
+        }
     };
     return LoggerInstance;
 }());
