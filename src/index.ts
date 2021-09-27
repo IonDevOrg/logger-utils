@@ -55,6 +55,10 @@ export class LoggerInstance {
     }   
 
     public capture(e: any) {
-        Sentry.captureException(e);
+        if(this.environment !== "production"){
+            this.logger.log('error', e.toString())
+        }else{
+            Sentry.captureException(e);
+        }
     }
 }
